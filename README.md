@@ -1199,6 +1199,19 @@ X_train_scaled = scaler.fit_transform(X_train.astype(np.float64))
 cross_val_score(sgd_clf, X_train_scaled, y_train, cv=3, scoring="accuracy")
 ```
 
+    /home/ced/anaconda3/lib/python3.7/site-packages/sklearn/linear_model/stochastic_gradient.py:561: ConvergenceWarning: Maximum number of iteration reached before convergence. Consider increasing max_iter to improve the fit.
+      ConvergenceWarning)
+    /home/ced/anaconda3/lib/python3.7/site-packages/sklearn/linear_model/stochastic_gradient.py:561: ConvergenceWarning: Maximum number of iteration reached before convergence. Consider increasing max_iter to improve the fit.
+      ConvergenceWarning)
+
+
+
+
+
+    array([0.89982004, 0.90534527, 0.90153523])
+
+
+
 C'est un réel progrès que nous pouvons mesurer.
 
 ### Analyse d'erreur
@@ -1212,27 +1225,57 @@ conf_mx = confusion_matrix(y_train, y_train_pred)
 conf_mx
 ```
 
+    /home/ced/anaconda3/lib/python3.7/site-packages/sklearn/linear_model/stochastic_gradient.py:561: ConvergenceWarning: Maximum number of iteration reached before convergence. Consider increasing max_iter to improve the fit.
+      ConvergenceWarning)
+    /home/ced/anaconda3/lib/python3.7/site-packages/sklearn/linear_model/stochastic_gradient.py:561: ConvergenceWarning: Maximum number of iteration reached before convergence. Consider increasing max_iter to improve the fit.
+      ConvergenceWarning)
+
+
+
+
+
+    array([[5597,    0,   15,    9,   10,   43,   36,    5,  207,    1],
+           [   1, 6419,   41,   22,    3,   45,    4,    8,  186,   13],
+           [  23,   25, 5267,   91,   71,   27,   64,   45,  334,   11],
+           [  30,   20,  113, 5277,    2,  202,   26,   45,  349,   67],
+           [  10,   18,   39,   11, 5254,    9,   39,   21,  280,  161],
+           [  30,   20,   26,  158,   53, 4499,   75,   21,  476,   63],
+           [  28,   18,   43,    5,   37,   96, 5552,    7,  132,    0],
+           [  20,   10,   55,   27,   48,   11,    4, 5721,  160,  209],
+           [  19,   71,   39,  111,    1,  127,   28,   10, 5398,   47],
+           [  24,   23,   29,   60,  126,   34,    1,  188,  314, 5150]])
+
+
+
 C'est un peu indigeste. Votre oeil préfère sans doute les images (voire les couleurs).
 
 
 ```python
 plt.matshow(conf_mx, cmap=plt.cm.gray)
-save_fig("confusion_matrix_plot", tight_layout=False)
+#save_fig("confusion_matrix_plot", tight_layout=False)
 plt.show()
 ```
+
+
+![png](output_123_0.png)
+
 
 En exercice, utilisez [`matshow`](https://matplotlib.org/api/_as_gen/matplotlib.pyplot.matshow.html) pour mettre un peu de couleur à la visualisation de cette matrice :
 
 
 ```python
 def plot_confusion_matrix(matrix):
-    #CODE A COMPLETER
-    #CODE A COMPLETER
-    #CODE A COMPLETER
-    #CODE A COMPLETER
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(matrix)
+    fig.colorbar(cax)
 
 plot_confusion_matrix(conf_mx)
 ```
+
+
+![png](output_125_0.png)
+
 
 Tout a l'air correct. La diagonale est peuplée et le reste l'est peu. La classe `5` est légèrement plus sombre. Cela peut signifier que la classification se fait moins bien ou tout simplement que le jeu de données contient moins de 5.
 
@@ -1248,14 +1291,22 @@ norm_conf_mx = conf_mx / row_sums
 ```python
 np.fill_diagonal(norm_conf_mx, 0)
 plt.matshow(norm_conf_mx, cmap=plt.cm.gray)
-save_fig("confusion_matrix_errors_plot", tight_layout=False)
+#save_fig("confusion_matrix_errors_plot", tight_layout=False)
 plt.show()
 ```
+
+
+![png](output_128_0.png)
+
 
 
 ```python
 plot_confusion_matrix(norm_conf_mx)
 ```
+
+
+![png](output_129_0.png)
+
 
 C'est plus clair. On a maintenant une vue bien plus précise des erreurs qui sont commises. Par exemple, la colonne de la classe `8` est assez claire, on sait que beaucoup d'images sont considérées comme des 8 par erreur.
 
@@ -1274,9 +1325,13 @@ plt.subplot(221); plot_digits(X_aa[:25], images_per_row=5)
 plt.subplot(222); plot_digits(X_ab[:25], images_per_row=5)
 plt.subplot(223); plot_digits(X_ba[:25], images_per_row=5)
 plt.subplot(224); plot_digits(X_bb[:25], images_per_row=5)
-save_fig("error_analysis_digits_plot")
+#save_fig("error_analysis_digits_plot")
 plt.show()
 ```
+
+
+![png](output_131_0.png)
+
 
 L'observation de ces images nous incite à considérer de nouvelles stratégies :
 - On utilise un algo linéaire qui donne un poids à chaque pixel. Ça ne permet pas de palier certaines petites imperfection.
@@ -1293,8 +1348,8 @@ Le besoin d'attribuer plusieurs labels à une même instance peut exister. On pe
 ```python
 from sklearn.neighbors import KNeighborsClassifier
 
-#CODE A COMPLETER # On construit y_train_large à partir de y_train
-#CODE A COMPLETER # De même pour y_train_odd
+y_train_large = (y_train >= 7) # On construit y_train_large à partir de y_train
+y_train_odd = (y_train % 2 == 1) # De même pour y_train_odd
 y_multilabel = np.c_[y_train_large, y_train_odd]
 
 knn_clf = KNeighborsClassifier()
@@ -1302,9 +1357,25 @@ knn_clf.fit(X_train, y_multilabel)
 ```
 
 
+
+
+    KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+                         metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+                         weights='uniform')
+
+
+
+
 ```python
 knn_clf.predict([some_digit])
 ```
+
+
+
+
+    array([[False,  True]])
+
+
 
 
 ```python
@@ -1335,9 +1406,17 @@ y_test_mod = X_test
 some_index = 5500
 plt.subplot(121); plot_digit(X_test_mod[some_index])
 plt.subplot(122); plot_digit(y_test_mod[some_index])
-save_fig("noisy_digit_example_plot")
+#save_fig("noisy_digit_example_plot")
 plt.show()
 ```
+
+
+![png](output_139_0.png)
+
+
+
+![png](output_139_1.png)
+
 
 Nous pouvons maintenant entraîner un modèle (ici [$k$-_plus-proches-voisins_](https://fr.wikipedia.org/wiki/M%C3%A9thode_des_k_plus_proches_voisins)) à nettoyer nos images. Nous utilisons une image du jeu de test pour l'exemple.
 
@@ -1347,19 +1426,40 @@ knn_clf.fit(X_train_mod, y_train_mod)
 ```
 
 
+
+
+    KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='minkowski',
+                         metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+                         weights='uniform')
+
+
+
+
 ```python
-#CODE A COMPLETER # Nettoyer c'est prédire
+clean_digit = knn_clf.predict([X_test_mod[some_index]]) # Nettoyer c'est prédire
 plot_digit(clean_digit)
-save_fig("cleaned_digit_example_plot")
+#save_fig("cleaned_digit_example_plot")
 ```
+
+
+![png](output_142_0.png)
+
 
 
 ```python
 other_index = 2312
-#CODE A COMPLETER # Nettoyer c'est prédire
+clean_digit = knn_clf.predict([X_test_mod[other_index]]) # Nettoyer c'est prédire
 plt.subplot(121); plot_digit(X_test_mod[other_index])
 plt.subplot(122); plot_digit(clean_digit)
 ```
+
+
+![png](output_143_0.png)
+
+
+
+![png](output_143_1.png)
+
 
 Le résultat est plutôt convainquant !
 
